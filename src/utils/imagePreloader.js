@@ -37,6 +37,7 @@ export function preloadInitialImages(articlesOrUrls = [], limit = 6) {
 
     try {
       const img = new Image()
+      img.referrerPolicy = 'no-referrer'
       img.decoding = 'async'
       if ('fetchPriority' in img) {
         // Hero image gets 'high', top visible cards get 'high', rest 'auto'
@@ -75,9 +76,9 @@ export function prewarmVisibleImages(articlesOrUrls = [], { max = 2, timeoutMs =
   preloadInitialImages(articlesOrUrls, 6)
 
   const criticalUrls = articlesOrUrls
-    .slice(0, max)
     .map((item) => (typeof item === 'string' ? item : item?.imageUrl))
     .filter((url) => Boolean(url && typeof url === 'string'))
+    .slice(0, max)
 
   if (criticalUrls.length === 0) return Promise.resolve()
 
@@ -86,6 +87,7 @@ export function prewarmVisibleImages(articlesOrUrls = [], { max = 2, timeoutMs =
 
     return new Promise((resolve) => {
       const img = new Image()
+      img.referrerPolicy = 'no-referrer'
       img.decoding = 'async'
       if ('fetchPriority' in img) {
         img.fetchPriority = 'high'

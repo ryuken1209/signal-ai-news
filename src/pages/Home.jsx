@@ -74,13 +74,20 @@ export default function Home() {
     }
   }, [activeCategory])
 
-  const featured = articles[0]
+  const featured = useMemo(() => {
+    if (!articles || articles.length === 0) return null
+    // Prioritize an article that has a high-quality image for the prominent visual hero slot
+    return articles.find((a) => Boolean(a.imageUrl)) || articles[0]
+  }, [articles])
 
   const feedArticles = useMemo(() => {
     const hasSearch = Boolean(search.trim())
-    // When searching, include all articles (including the featured one).
-    // When browsing the "All" category without search, separate out featured article (articles[0]).
-    let list = activeCategory === 'All' && !hasSearch ? articles.slice(1) : articles
+    // When searching or in filtered categories, keep all matching articles.
+    // When browsing the "All" category without search, separate out the chosen featured article.
+    let list =
+      activeCategory === 'All' && !hasSearch && featured
+        ? articles.filter((a) => a.id !== featured.id)
+        : articles
 
     if (hasSearch) {
       const q = search.trim().toLowerCase()
@@ -95,7 +102,7 @@ export default function Home() {
     }
 
     return list
-  }, [articles, activeCategory, search])
+  }, [articles, activeCategory, search, featured])
 
   return (
     <div className="min-h-screen flex flex-col page-transition">

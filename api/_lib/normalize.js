@@ -77,13 +77,43 @@ function extractImage(item) {
     return cleanImageUrl(mediaThumbnail?.$?.url || mediaThumbnail?.url)
   }
 
-  // 4. Check HTML content or contentEncoded for <img>
-  const html = item.contentEncoded || item['content:encoded'] || item.content || ''
-  const match = html.match(/<img[^>]+src=["']([^"']+)["']/i)
-  if (match && match[1]) {
-    // avoid 1x1 tracking pixels
-    if (!match[0].includes('width="1"') && !match[0].includes("width='1'")) {
-      return cleanImageUrl(match[1])
+  // 4. Check media:group (often in YouTube or Atom feeds)
+  const mediaGroup = item.mediaGroup || item['media:group']
+  if (mediaGroup) {
+    const groupItems = [
+      mediaGroup.mediaContent || mediaGroup['media:content'],
+      mediaGroup.mediaThumbnail || mediaGroup['media:thumbnail'],
+    ]
+    for (const entry of groupItems) {
+      if (Array.isArray(entry)) {
+        for (const m of entry) {
+          const url = m?.$?.url || m?.url
+          if (url) return cleanImageUrl(url)
+        }
+      } else if (entry?.$?.url || entry?.url) {
+        return cleanImageUrl(entry?.$?.url || entry?.url)
+      }
+    }
+  }
+
+  // 5. Check HTML content, contentEncoded, description, or summary for <img>
+  const htmlCandidates = [
+    item.contentEncoded,
+    item['content:encoded'],
+    item.content,
+    item.description,
+    item.summary,
+  ].filter(Boolean)
+
+  for (const html of htmlCandidates) {
+    if (typeof html !== 'string') continue
+    const match = html.match(/<img[^>]+(?:src|data-src|data-orig-file)=["']([^"']+)["']/i)
+    if (match && match[1]) {
+      // avoid 1x1 tracking pixels
+      if (!match[0].includes('width="1"') && !match[0].includes("width='1'")) {
+        const cleaned = cleanImageUrl(match[1])
+        if (cleaned) return cleaned
+      }
     }
   }
 

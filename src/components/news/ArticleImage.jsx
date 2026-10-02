@@ -25,9 +25,13 @@ export default function ArticleImage({
   useEffect(() => {
     if (!src || failed || loaded) return
     const img = imgRef.current
-    if (img && img.complete && img.naturalWidth > 0) {
-      markImageLoaded(src)
-      setLoaded(true)
+    if (img && img.complete) {
+      if (img.naturalWidth > 0) {
+        markImageLoaded(src)
+        setLoaded(true)
+      } else {
+        setFailed(true)
+      }
     }
   }, [src, failed, loaded])
 
@@ -63,6 +67,7 @@ export default function ArticleImage({
         loading={priority ? 'eager' : 'lazy'}
         fetchPriority={effectiveFetchPriority}
         decoding="async"
+        referrerPolicy="no-referrer"
         onLoad={() => {
           markImageLoaded(src)
           setLoaded(true)

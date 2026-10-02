@@ -13,6 +13,7 @@ const parser = new Parser({
     item: [
       ['media:content', 'mediaContent'],
       ['media:thumbnail', 'mediaThumbnail'],
+      ['media:group', 'mediaGroup'],
       ['content:encoded', 'contentEncoded'],
     ],
   },
