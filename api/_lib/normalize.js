@@ -43,14 +43,15 @@ function cleanImageUrl(url) {
   let cleaned = url.replace(/&#038;/g, '&').replace(/&amp;/g, '&').trim()
   if (!/^https?:\/\//i.test(cleaned)) return null
 
-  // Reject tracking pixels, spacers, beacons
+  // Reject SVG icons/logos and tracking pixels
+  if (/\.svg(\?.*)?$/i.test(cleaned)) return null
   if (/(pixel|beacon|spacer|blank\.gif|1x1|tracking)/i.test(cleaned)) return null
 
   // Reject author profile avatars & user portraits
   if (/(user\/profile_image|avatars?\/|author[s\-_/]|gravatar\.com)/i.test(cleaned)) return null
 
   // Reject favicons, site logos, social badges, buttons, emoji
-  if (/(favicon|site-logo|app-icon|emoji|\/badges?\/|\/buttons?\/)/i.test(cleaned)) return null
+  if (/(favicon|[-_]logo|logo[-_]|\/logo|site-logo|app-icon|emoji|\/badges?\/|\/buttons?\/)/i.test(cleaned)) return null
 
   // If Blogger/Googleusercontent has a tiny thumbnail dimension (/s72-c/ or /w72-h72/ or /s320/), upgrade to /s1600/
   if (/blogger\.googleusercontent\.com|googleusercontent\.com/i.test(cleaned)) {
