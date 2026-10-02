@@ -6,8 +6,8 @@
 // /api routes). It is never used in production, and the UI always shows
 // a visible banner when fallback data is on screen — see Home.jsx.
 
-import { sampleArticles } from '../data/sampleArticles'
-import { preloadInitialImages } from '../utils/imagePreloader'
+import { sampleArticles } from '../data/sampleArticles.js'
+import { preloadInitialImages } from '../utils/imagePreloader.js'
 
 const FETCH_TIMEOUT_MS = 10_000
 
