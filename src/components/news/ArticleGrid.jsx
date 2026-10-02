@@ -1,6 +1,6 @@
 import ArticleCard from './ArticleCard'
 
-export default function ArticleGrid({ articles = [] }) {
+export default function ArticleGrid({ articles = [], isHeroPresent = true }) {
   if (!articles || articles.length === 0) {
     return (
       <div className="py-20 text-center border border-dashed border-line/80 rounded-xl bg-surface/20 my-6">
@@ -17,7 +17,7 @@ export default function ArticleGrid({ articles = [] }) {
     )
   }
 
-  // If fewer than 4 stories, render a clean standard grid
+  // If fewer than 4 stories, render a clean standard grid with eager loading
   if (articles.length < 4) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -26,8 +26,8 @@ export default function ArticleGrid({ articles = [] }) {
             key={article.id}
             article={article}
             variant="grid"
-            priority={idx < 2}
-            fetchPriority={idx === 0 ? 'high' : 'auto'}
+            priority={true}
+            fetchPriority={idx === 0 && !isHeroPresent ? 'high' : 'auto'}
           />
         ))}
       </div>
@@ -35,17 +35,17 @@ export default function ArticleGrid({ articles = [] }) {
   }
 
   // Segment articles to construct magazine editorial rhythm
-  // Tier 1: Lead story (focal card) + 2 side stories
+  // Tier 1: Lead story (focal card) + 2 side stories (3 visible cards)
   const leadStory = articles[0]
   const sideStories = articles.slice(1, 3)
 
-  // Tier 2: 3-column balanced cards
+  // Tier 2: 3-column balanced cards (3 visible cards)
   const middleGrid = articles.slice(3, 6)
 
-  // Tier 3: Panoramic full-width feature story
+  // Tier 3: Panoramic full-width feature story (below fold)
   const wideStory = articles[6]
 
-  // Tier 4: Remaining stories in multi-column grid
+  // Tier 4: Remaining stories in multi-column grid (below fold)
   const remainingStories = articles.slice(7)
 
   return (
@@ -59,19 +59,19 @@ export default function ArticleGrid({ articles = [] }) {
               article={leadStory}
               variant="grid"
               priority={true}
-              fetchPriority="high"
+              fetchPriority={isHeroPresent ? 'auto' : 'high'}
             />
           </div>
         )}
         {sideStories.length > 0 && (
           <div className="lg:col-span-5 flex flex-col gap-5 justify-between">
-            {sideStories.map((story, idx) => (
+            {sideStories.map((story) => (
               <div key={story.id} className="flex-1">
                 <ArticleCard
                   article={story}
                   variant="row"
                   priority={true}
-                  fetchPriority={idx === 0 ? 'high' : 'auto'}
+                  fetchPriority="auto"
                 />
               </div>
             ))}
@@ -79,15 +79,15 @@ export default function ArticleGrid({ articles = [] }) {
         )}
       </div>
 
-      {/* Tier 2: 3-Column Magazine Row */}
+      {/* Tier 2: 3-Column Magazine Row (Visible above/at fold - eager loaded) */}
       {middleGrid.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
-          {middleGrid.map((story, idx) => (
+          {middleGrid.map((story) => (
             <ArticleCard
               key={story.id}
               article={story}
               variant="grid"
-              priority={idx === 0}
+              priority={true}
               fetchPriority="auto"
             />
           ))}

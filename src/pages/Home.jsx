@@ -7,7 +7,6 @@ import ArticleSkeleton from '../components/news/ArticleSkeleton'
 import { getArticles } from '../services/newsService'
 import { CATEGORIES } from '../data/sampleArticles'
 import { useFollowedTopics } from '../hooks/useFollowedTopics'
-import { prewarmVisibleImages } from '../utils/imagePreloader'
 
 const FILTERS = ['All', ...CATEGORIES, 'Trending']
 
@@ -29,9 +28,6 @@ export default function Home() {
         trending: isTrending,
       })
       const items = data.articles || []
-      if (items.length > 0) {
-        await prewarmVisibleImages(items, { max: 3, timeoutMs: 350 })
-      }
       setArticles(items)
       setIsFallback(Boolean(data.isFallback))
       setSourceErrors(data.sourceErrors || [])
@@ -49,18 +45,13 @@ export default function Home() {
       category: isTrending ? 'All' : activeCategory,
       trending: isTrending,
     })
-      .then(async (data) => {
+      .then((data) => {
         if (!cancelled) {
           const items = data.articles || []
-          if (items.length > 0) {
-            await prewarmVisibleImages(items, { max: 3, timeoutMs: 350 })
-          }
-          if (!cancelled) {
-            setArticles(items)
-            setIsFallback(Boolean(data.isFallback))
-            setSourceErrors(data.sourceErrors || [])
-            setStatus('ready')
-          }
+          setArticles(items)
+          setIsFallback(Boolean(data.isFallback))
+          setSourceErrors(data.sourceErrors || [])
+          setStatus('ready')
         }
       })
       .catch((err) => {
@@ -226,7 +217,12 @@ export default function Home() {
           </div>
         )}
 
-        {status === 'ready' && <ArticleGrid articles={feedArticles} />}
+        {status === 'ready' && (
+          <ArticleGrid
+            articles={feedArticles}
+            isHeroPresent={Boolean(featured && activeCategory === 'All' && !search)}
+          />
+        )}
       </main>
 
       <Footer />

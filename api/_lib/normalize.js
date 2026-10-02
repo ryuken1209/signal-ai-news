@@ -40,41 +40,62 @@ function stripHtml(html = '') {
 
 function cleanImageUrl(url) {
   if (!url || typeof url !== 'string') return null
-  const cleaned = url.replace(/&#038;/g, '&').replace(/&amp;/g, '&').trim()
+  let cleaned = url.replace(/&#038;/g, '&').replace(/&amp;/g, '&').trim()
   if (!/^https?:\/\//i.test(cleaned)) return null
+
+  // Reject tracking pixels, spacers, beacons
+  if (/(pixel|beacon|spacer|blank\.gif|1x1|tracking)/i.test(cleaned)) return null
+
+  // Reject author profile avatars & user portraits
+  if (/(user\/profile_image|avatars?\/|author[s\-_/]|gravatar\.com)/i.test(cleaned)) return null
+
+  // Reject favicons, site logos, social badges, buttons, emoji
+  if (/(favicon|site-logo|app-icon|emoji|\/badges?\/|\/buttons?\/)/i.test(cleaned)) return null
+
+  // If Blogger/Googleusercontent has a tiny thumbnail dimension (/s72-c/ or /w72-h72/ or /s320/), upgrade to /s1600/
+  if (/blogger\.googleusercontent\.com|googleusercontent\.com/i.test(cleaned)) {
+    cleaned = cleaned.replace(/\/(s(?:72-c|[0-9]{2,3})|w[0-9]+-h[0-9]+)\//i, '/s1600/')
+  }
+
+  // If Dev.to dynamic proxy wraps an original S3 article image, extract direct high-res S3 asset
+  if (/media2?\.dev\.to\/dynamic\/image/i.test(cleaned)) {
+    const s3Match = cleaned.match(/https%3A%2F%2Fdev-to-uploads[^"'&\s]+/i)
+    if (s3Match) {
+      cleaned = decodeURIComponent(s3Match[0])
+    }
+  }
+
   return cleaned
 }
 
 function extractImage(item) {
-  // 1. Check enclosure
+  // 1. Check cover_image (used by Dev.to and others)
+  if (item.cover_image) {
+    const cleaned = cleanImageUrl(item.cover_image)
+    if (cleaned) return cleaned
+  }
+
+  // 2. Check enclosure
   if (
     item.enclosure?.url &&
     (/^image\//i.test(item.enclosure.type || '') ||
       /\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?$/i.test(item.enclosure.url))
   ) {
-    return cleanImageUrl(item.enclosure.url)
+    const cleaned = cleanImageUrl(item.enclosure.url)
+    if (cleaned) return cleaned
   }
 
-  // 2. Check media:content (handles both array and object structures)
+  // 3. Check media:content (handles both array and object structures)
   const mediaContent = item.mediaContent || item['media:content']
   if (Array.isArray(mediaContent)) {
     for (const m of mediaContent) {
       const url = m?.$?.url || m?.url
-      if (url) return cleanImageUrl(url)
+      const cleaned = cleanImageUrl(url)
+      if (cleaned) return cleaned
     }
   } else if (mediaContent?.$?.url || mediaContent?.url) {
-    return cleanImageUrl(mediaContent?.$?.url || mediaContent?.url)
-  }
-
-  // 3. Check media:thumbnail (handles both array and object structures)
-  const mediaThumbnail = item.mediaThumbnail || item['media:thumbnail']
-  if (Array.isArray(mediaThumbnail)) {
-    for (const m of mediaThumbnail) {
-      const url = m?.$?.url || m?.url
-      if (url) return cleanImageUrl(url)
-    }
-  } else if (mediaThumbnail?.$?.url || mediaThumbnail?.url) {
-    return cleanImageUrl(mediaThumbnail?.$?.url || mediaThumbnail?.url)
+    const cleaned = cleanImageUrl(mediaContent?.$?.url || mediaContent?.url)
+    if (cleaned) return cleaned
   }
 
   // 4. Check media:group (often in YouTube or Atom feeds)
@@ -88,15 +109,30 @@ function extractImage(item) {
       if (Array.isArray(entry)) {
         for (const m of entry) {
           const url = m?.$?.url || m?.url
-          if (url) return cleanImageUrl(url)
+          const cleaned = cleanImageUrl(url)
+          if (cleaned) return cleaned
         }
       } else if (entry?.$?.url || entry?.url) {
-        return cleanImageUrl(entry?.$?.url || entry?.url)
+        const cleaned = cleanImageUrl(entry?.$?.url || entry?.url)
+        if (cleaned) return cleaned
       }
     }
   }
 
-  // 5. Check HTML content, contentEncoded, description, or summary for <img>
+  // 5. Check media:thumbnail (handles both array and object structures)
+  const mediaThumbnail = item.mediaThumbnail || item['media:thumbnail']
+  if (Array.isArray(mediaThumbnail)) {
+    for (const m of mediaThumbnail) {
+      const url = m?.$?.url || m?.url
+      const cleaned = cleanImageUrl(url)
+      if (cleaned) return cleaned
+    }
+  } else if (mediaThumbnail?.$?.url || mediaThumbnail?.url) {
+    const cleaned = cleanImageUrl(mediaThumbnail?.$?.url || mediaThumbnail?.url)
+    if (cleaned) return cleaned
+  }
+
+  // 6. Check HTML content, contentEncoded, description, or summary for <img>
   const htmlCandidates = [
     item.contentEncoded,
     item['content:encoded'],
@@ -107,13 +143,21 @@ function extractImage(item) {
 
   for (const html of htmlCandidates) {
     if (typeof html !== 'string') continue
-    const match = html.match(/<img[^>]+(?:src|data-src|data-orig-file)=["']([^"']+)["']/i)
-    if (match && match[1]) {
-      // avoid 1x1 tracking pixels
-      if (!match[0].includes('width="1"') && !match[0].includes("width='1'")) {
-        const cleaned = cleanImageUrl(match[1])
-        if (cleaned) return cleaned
+    const imgMatches = html.matchAll(/<img[^>]+(?:src|data-src|data-orig-file)=["']([^"']+)["'][^>]*>/gi)
+    for (const match of imgMatches) {
+      const fullTag = match[0]
+      const srcUrl = match[1]
+      // Skip if tag indicates an avatar or tiny icon
+      if (/(avatar|author|profile|crayons-avatar|favicon|icon)/i.test(fullTag)) continue
+      // Skip if explicitly small dimensions in tag (e.g. width="32" or height="32")
+      if (
+        /width=["'](?:[1-9]|[1-9][0-9]|1[0-9]{2})["']/i.test(fullTag) &&
+        !/width=["'][2-9][0-9]{2,}/i.test(fullTag)
+      ) {
+        continue
       }
+      const cleaned = cleanImageUrl(srcUrl)
+      if (cleaned) return cleaned
     }
   }
 

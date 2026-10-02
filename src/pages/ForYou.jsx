@@ -158,7 +158,7 @@ export default function ForYou() {
                   <ArticleCard
                     article={article}
                     variant="grid"
-                    priority={idx < 3}
+                    priority={idx < 6}
                     fetchPriority={idx === 0 ? 'high' : 'auto'}
                   />
                 </div>

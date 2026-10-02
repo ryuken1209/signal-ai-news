@@ -11,7 +11,6 @@ import ArticleImage from '../components/news/ArticleImage'
 import { getArticleById } from '../services/newsService'
 import { formatRelativeTime } from '../data/sampleArticles'
 import { useReadingHistory } from '../hooks/useReadingHistory'
-import { preloadInitialImages } from '../utils/imagePreloader'
 
 export default function Article() {
   const { id } = useParams()
@@ -31,9 +30,6 @@ export default function Article() {
     getArticleById(id)
       .then((data) => {
         if (!cancelled) {
-          if (data.article?.imageUrl) {
-            preloadInitialImages([data.article.imageUrl], 1)
-          }
           setArticle(data.article)
           setIsFallback(data.isFallback)
           setStatus('ready')
