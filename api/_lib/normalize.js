@@ -58,12 +58,16 @@ function cleanImageUrl(url) {
     cleaned = cleaned.replace(/\/(s(?:72-c|[0-9]{2,3})|w[0-9]+-h[0-9]+)\//i, '/s1600/')
   }
 
-  // If Dev.to dynamic proxy wraps an original S3 article image, extract direct high-res S3 asset
+  // If Dev.to image (either via media2.dev.to or direct S3), serve via Dev.to edge CDN proxy with crisp width
   if (/media2?\.dev\.to\/dynamic\/image/i.test(cleaned)) {
-    const s3Match = cleaned.match(/https%3A%2F%2Fdev-to-uploads[^"'&\s]+/i)
-    if (s3Match) {
-      cleaned = decodeURIComponent(s3Match[0])
+    const targetUrlMatch = cleaned.match(/https%3A%2F%2Fdev-to-uploads[^"'&\s]+/i)
+    if (targetUrlMatch) {
+      cleaned = `https://media2.dev.to/dynamic/image/width=1000,fit=scale-down,gravity=auto,format=auto/${targetUrlMatch[0]}`
+    } else {
+      cleaned = cleaned.replace(/width=\d+/i, 'width=1000')
     }
+  } else if (/dev-to-uploads\.s3[.\-a-z0-9]*\.amazonaws\.com\/uploads\/articles/i.test(cleaned)) {
+    cleaned = `https://media2.dev.to/dynamic/image/width=1000,fit=scale-down,gravity=auto,format=auto/${encodeURIComponent(cleaned)}`
   }
 
   return cleaned

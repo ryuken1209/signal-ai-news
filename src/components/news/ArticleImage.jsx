@@ -28,8 +28,23 @@ export default function ArticleImage({
     if (img && img.complete && img.naturalWidth > 0) {
       markImageLoaded(src)
       setLoaded(true)
+      return
     }
-  }, [src, failed, loaded])
+
+    if (priority) {
+      // Fail-fast timer: if a remote third-party publisher hangs, fall back to Signal placeholder
+      const timer = setTimeout(() => {
+        if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+          markImageLoaded(src)
+          setLoaded(true)
+        } else {
+          setFailed(true)
+        }
+      }, 6000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [src, failed, loaded, priority])
 
   if (!src || failed) {
     return (
