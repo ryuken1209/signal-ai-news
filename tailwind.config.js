@@ -7,81 +7,42 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: "#080B10",
-        surface: {
-          DEFAULT: "#10151E",
-          subtle: "#131924",
-          hover: "#17202E",
-          elevated: "#151C28",
+        navy: {
+          50: "#f8fafc",
+          100: "#f1f5f9",
+          200: "#e2e8f0",
+          300: "#cbd5e1",
+          400: "#94a3b8",
+          500: "#64748b",
+          600: "#475569",
+          700: "#334155",
+          800: "#1e293b",
+          900: "#0f172a",
+          950: "#020617",
         },
-        line: {
-          DEFAULT: "#1E2634",
-          subtle: "#161D28",
-          bright: "#2A3547",
+        brand: {
+          50: "#eff6ff",
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          300: "#93c5fd",
+          400: "#60a5fa",
+          500: "#3b82f6",
+          600: "#2563eb",
+          700: "#1d4ed8",
+          800: "#1e40af",
+          900: "#1e3a8a",
         },
-        text: {
-          primary: "#E6EDF3",
-          muted: "#8B95A1",
-          faint: "#5B6472",
-        },
-        signal: {
-          DEFAULT: "#5FC9F8",
-          muted: "rgba(95, 201, 248, 0.15)",
-          glow: "rgba(95, 201, 248, 0.35)",
-        },
-        amber: {
-          DEFAULT: "#FFB454",
-          muted: "rgba(255, 180, 84, 0.15)",
-        },
-      },
-      transitionTimingFunction: {
-        spring: "cubic-bezier(0.16, 1, 0.3, 1)",
-        "spring-snappy": "cubic-bezier(0.2, 0.9, 0.3, 1.1)",
-      },
-      keyframes: {
-        "fade-slide-up": {
-          "0%": { opacity: "0", transform: "translateY(12px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        "fade-in": {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
-        "scale-subtle": {
-          "0%": { transform: "scale(0.97)", opacity: "0" },
-          "100%": { transform: "scale(1)", opacity: "1" },
-        },
-        shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
-        },
-        "pulse-subtle": {
-          "0%, 100%": { opacity: "1", transform: "scale(1)" },
-          "50%": { opacity: "0.5", transform: "scale(0.95)" },
-        },
-        "gradient-flow": {
-          "0%, 100%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
-        },
-      },
-      animation: {
-        "fade-slide-up": "fade-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-        "fade-in": "fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-        "scale-subtle": "scale-subtle 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-        shimmer: "shimmer 2.2s infinite linear",
-        "pulse-subtle": "pulse-subtle 2.5s ease-in-out infinite",
-        "gradient-flow": "gradient-flow 3s ease infinite",
       },
       fontFamily: {
-        display: ["Spectral", "serif"],
-        sans: ["Inter", "sans-serif"],
-        mono: ["IBM Plex Mono", "monospace"],
+        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        mono: ["IBM Plex Mono", "Courier New", "monospace"],
       },
-      maxWidth: {
-        content: "1180px",
+      boxShadow: {
+        subtle: "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)",
+        card: "0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04)",
+        elevated: "0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03)",
       },
     },
   },
   plugins: [],
-}
-
+};
