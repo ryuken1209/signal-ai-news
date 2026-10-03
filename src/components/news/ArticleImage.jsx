@@ -25,13 +25,9 @@ export default function ArticleImage({
   useEffect(() => {
     if (!src || failed || loaded) return
     const img = imgRef.current
-    if (img && img.complete) {
-      if (img.naturalWidth > 0) {
-        markImageLoaded(src)
-        setLoaded(true)
-      } else {
-        setFailed(true)
-      }
+    if (img && img.complete && img.naturalWidth > 0) {
+      markImageLoaded(src)
+      setLoaded(true)
     }
   }, [src, failed, loaded])
 
